@@ -134,7 +134,6 @@ public class JSONObject {
         public boolean equals(Object object) {
             return object == null || object == this;
         }
-
         /**
          * A Null object is equal to the null value and to itself.
          *
@@ -1970,7 +1969,6 @@ public class JSONObject {
     public Object query(String jsonPointer) {
         return query(new JSONPointer(jsonPointer));
     }
-
     /**
      * Uses a user initialized JSONPointer  and tries to
      * match it to an item within this JSONObject. For example, given a
