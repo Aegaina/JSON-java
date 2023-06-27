@@ -157,8 +157,8 @@ public class JSONObject {
     }
 
     /**
-     * Regular Expression Pattern that matches JSON Numbers. This is primarily used for
-     * output to guarantee that we are always writing valid JSON.
+     *  Regular Expression Pattern that matches JSON Numbers. This is primarily used for
+     *  output to guarantee that we are always writing valid JSON.
      */
     static final Pattern NUMBER_PATTERN = Pattern.compile("-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?");
 
@@ -200,7 +200,7 @@ public class JSONObject {
      * @param names
      *            An array of strings.
      */
-    public JSONObject(JSONObject jo, String... names) {
+    public JSONObject(JSONObject jo, String ... names) {
         this(names.length);
         for (int i = 0; i < names.length; i += 1) {
             try {
@@ -217,7 +217,7 @@ public class JSONObject {
      *            A JSONTokener object containing the source string.
      * @throws JSONException
      *             If there is a syntax error in the source string or a
-     *                       duplicated key.
+     *             duplicated key.
      */
     public JSONObject(JSONTokener x) throws JSONException {
         this();
@@ -227,23 +227,23 @@ public class JSONObject {
         if (x.nextClean() != '{') {
             throw x.syntaxError("A JSONObject text must begin with '{'");
         }
-        for (; ; ) {
+        for (;;) {
             char prev = x.getPrevious();
             c = x.nextClean();
             switch (c) {
-                case 0:
-                    throw x.syntaxError("A JSONObject text must end with '}'");
-                case '}':
-                    return;
-                case '{':
-                case '[':
-                    if (prev == '{') {
-                        throw x.syntaxError("A JSON Object can not directly nest another JSON Object or JSON Array.");
-                    }
-                    // fall through
-                default:
-                    x.back();
-                    key = x.nextValue().toString();
+            case 0:
+                throw x.syntaxError("A JSONObject text must end with '}'");
+            case '}':
+                return;
+            case '{':
+            case '[':
+                if(prev=='{') {
+                    throw x.syntaxError("A JSON Object can not directly nest another JSON Object or JSON Array.");
+                }
+                // fall through
+            default:
+                x.back();
+                key = x.nextValue().toString();
             }
 
             // The key is followed by ':'.
@@ -263,7 +263,7 @@ public class JSONObject {
                 }
                 // Only add value if non-null
                 Object value = x.nextValue();
-                if (value != null) {
+                if (value!=null) {
                     this.put(key, value);
                 }
             }
@@ -271,17 +271,17 @@ public class JSONObject {
             // Pairs are separated by ','.
 
             switch (x.nextClean()) {
-                case ';':
-                case ',':
-                    if (x.nextClean() == '}') {
-                        return;
-                    }
-                    x.back();
-                    break;
-                case '}':
+            case ';':
+            case ',':
+                if (x.nextClean() == '}') {
                     return;
-                default:
-                    throw x.syntaxError("Expected a ',' or '}'");
+                }
+                x.back();
+                break;
+            case '}':
+                return;
+            default:
+                throw x.syntaxError("Expected a ',' or '}'");
             }
         }
     }
@@ -302,10 +302,10 @@ public class JSONObject {
             this.map = getMapFactory().createMap();
         } else {
             this.map = getMapFactory().createMap(m.size());
-            for (final Entry<?, ?> e : m.entrySet()) {
-                if (e.getKey() == null) {
-                    throw new NullPointerException("Null key.");
-                }
+        	for (final Entry<?, ?> e : m.entrySet()) {
+        	    if(e.getKey() == null) {
+        	        throw new NullPointerException("Null key.");
+        	    }
                 final Object value = e.getValue();
                 if (value != null) {
                     this.map.put(String.valueOf(e.getKey()), wrap(value));
@@ -370,7 +370,7 @@ public class JSONObject {
      *
      * @param bean
      *            An object that has getter methods that should be used to make
-     *             a JSONObject.
+     *            a JSONObject.
      */
     public JSONObject(Object bean) {
         this();
@@ -394,9 +394,9 @@ public class JSONObject {
      *            JSONObject.
      * @param names
      *            An array of strings, the names of the fields to be obtained
-     *               from the object.
+     *            from the object.
      */
-    public JSONObject(Object object, String... names) {
+    public JSONObject(Object object, String ... names) {
         this(names.length);
         Class<?> c = object.getClass();
         for (int i = 0; i < names.length; i += 1) {
@@ -418,7 +418,7 @@ public class JSONObject {
      *            &nbsp;<small>(right brace)</small>.
      * @exception JSONException
      *                If there is a syntax error in the source string or a
-     *                       duplicated key.
+     *                duplicated key.
      */
     public JSONObject(String source) throws JSONException {
         this(new JSONTokener(source));
@@ -613,11 +613,11 @@ public class JSONObject {
      * @return The enum value associated with the key
      * @throws JSONException
      *             if the key is not found or if the value cannot be converted
-     *                       to an enum.
+     *             to an enum.
      */
     public <E extends Enum<E>> E getEnum(Class<E> clazz, String key) throws JSONException {
         E val = optEnum(clazz, key);
-        if (val == null) {
+        if(val==null) {
             // JSONException should really take a throwable argument.
             // If it did, I would re-implement this with the Enum.valueOf
             // method and place any thrown exception in the JSONException
@@ -634,17 +634,17 @@ public class JSONObject {
      * @return The truth.
      * @throws JSONException
      *             if the value is not a Boolean or the String "true" or
-     *                       "false".
+     *             "false".
      */
     public boolean getBoolean(String key) throws JSONException {
         Object object = this.get(key);
         if (object.equals(Boolean.FALSE)
                 || (object instanceof String && ((String) object)
-                .equalsIgnoreCase("false"))) {
+                        .equalsIgnoreCase("false"))) {
             return false;
         } else if (object.equals(Boolean.TRUE)
                 || (object instanceof String && ((String) object)
-                .equalsIgnoreCase("true"))) {
+                        .equalsIgnoreCase("true"))) {
             return true;
         }
         throw wrongValueFormatException(key, "Boolean", object, null);
@@ -658,7 +658,7 @@ public class JSONObject {
      * @return The numeric value.
      * @throws JSONException
      *             if the key is not found or if the value cannot
-     *                       be converted to BigInteger.
+     *             be converted to BigInteger.
      */
     public BigInteger getBigInteger(String key) throws JSONException {
         Object object = this.get(key);
@@ -680,7 +680,7 @@ public class JSONObject {
      * @return The numeric value.
      * @throws JSONException
      *             if the key is not found or if the value
-     *                       cannot be converted to BigDecimal.
+     *             cannot be converted to BigDecimal.
      */
     public BigDecimal getBigDecimal(String key) throws JSONException {
         Object object = this.get(key);
@@ -699,12 +699,12 @@ public class JSONObject {
      * @return The numeric value.
      * @throws JSONException
      *             if the key is not found or if the value is not a Number
-     *                       object and cannot be converted to a number.
+     *             object and cannot be converted to a number.
      */
     public double getDouble(String key) throws JSONException {
         final Object object = this.get(key);
-        if (object instanceof Number) {
-            return ((Number) object).doubleValue();
+        if(object instanceof Number) {
+            return ((Number)object).doubleValue();
         }
         try {
             return Double.parseDouble(object.toString());
@@ -721,12 +721,12 @@ public class JSONObject {
      * @return The numeric value.
      * @throws JSONException
      *             if the key is not found or if the value is not a Number
-     *                       object and cannot be converted to a number.
+     *             object and cannot be converted to a number.
      */
     public float getFloat(String key) throws JSONException {
         final Object object = this.get(key);
-        if (object instanceof Number) {
-            return ((Number) object).floatValue();
+        if(object instanceof Number) {
+            return ((Number)object).floatValue();
         }
         try {
             return Float.parseFloat(object.toString());
@@ -749,7 +749,7 @@ public class JSONObject {
         Object object = this.get(key);
         try {
             if (object instanceof Number) {
-                return (Number) object;
+                return (Number)object;
             }
             return stringToNumber(object.toString());
         } catch (Exception e) {
@@ -765,12 +765,12 @@ public class JSONObject {
      * @return The integer value.
      * @throws JSONException
      *             if the key is not found or if the value cannot be converted
-     *                       to an integer.
+     *             to an integer.
      */
     public int getInt(String key) throws JSONException {
         final Object object = this.get(key);
-        if (object instanceof Number) {
-            return ((Number) object).intValue();
+        if(object instanceof Number) {
+            return ((Number)object).intValue();
         }
         try {
             return Integer.parseInt(object.toString());
@@ -825,8 +825,8 @@ public class JSONObject {
      */
     public long getLong(String key) throws JSONException {
         final Object object = this.get(key);
-        if (object instanceof Number) {
-            return ((Number) object).longValue();
+        if(object instanceof Number) {
+            return ((Number)object).longValue();
         }
         try {
             return Long.parseLong(object.toString());
@@ -925,13 +925,13 @@ public class JSONObject {
         } else if (value instanceof Long) {
             this.put(key, ((Long) value).longValue() + 1L);
         } else if (value instanceof BigInteger) {
-            this.put(key, ((BigInteger) value).add(BigInteger.ONE));
+            this.put(key, ((BigInteger)value).add(BigInteger.ONE));
         } else if (value instanceof Float) {
             this.put(key, ((Float) value).floatValue() + 1.0f);
         } else if (value instanceof Double) {
             this.put(key, ((Double) value).doubleValue() + 1.0d);
         } else if (value instanceof BigDecimal) {
-            this.put(key, ((BigDecimal) value).add(BigDecimal.ONE));
+            this.put(key, ((BigDecimal)value).add(BigDecimal.ONE));
         } else {
             throw new JSONException("Unable to increment [" + quote(key) + "].");
         }
@@ -1022,12 +1022,12 @@ public class JSONObject {
      * JSONObject.
      *
      * @return A JSONArray containing the key strings, or null if the JSONObject
-     * is empty.
+     *        is empty.
      */
     public JSONArray names() {
-        if (this.map.isEmpty()) {
-            return null;
-        }
+    	if(this.map.isEmpty()) {
+    		return null;
+    	}
         return new JSONArray(this.map.keySet());
     }
 
@@ -1121,7 +1121,7 @@ public class JSONObject {
         }
     }
 
-/**
+    /**
      * Get an optional boolean associated with a key. It returns false if there
      * is no such key, or if the value is not Boolean.TRUE or the String "true".
      *
@@ -1149,7 +1149,7 @@ public class JSONObject {
         if (NULL.equals(val)) {
             return defaultValue;
         }
-        if (val instanceof Boolean) {
+        if (val instanceof Boolean){
             return ((Boolean) val).booleanValue();
         }
         try {
@@ -1180,39 +1180,39 @@ public class JSONObject {
     }
 
     /**
-     * @param val          value to convert
+     * @param val value to convert
      * @param defaultValue default value to return is the conversion doesn't work or is null.
      * @return BigDecimal conversion of the original value, or the defaultValue if unable
-     * to convert.
+     *          to convert.
      */
     static BigDecimal objectToBigDecimal(Object val, BigDecimal defaultValue) {
         return objectToBigDecimal(val, defaultValue, true);
     }
-
+    
     /**
-     * @param val          value to convert
+     * @param val value to convert
      * @param defaultValue default value to return is the conversion doesn't work or is null.
-     * @param exact        When <code>true</code>, then {@link Double} and {@link Float} values will be converted exactly.
-     *                     When <code>false</code>, they will be converted to {@link String} values before converting to {@link BigDecimal}.
+     * @param exact When <code>true</code>, then {@link Double} and {@link Float} values will be converted exactly.
+     *      When <code>false</code>, they will be converted to {@link String} values before converting to {@link BigDecimal}.
      * @return BigDecimal conversion of the original value, or the defaultValue if unable
-     * to convert.
+     *          to convert.
      */
     static BigDecimal objectToBigDecimal(Object val, BigDecimal defaultValue, boolean exact) {
         if (NULL.equals(val)) {
             return defaultValue;
         }
-        if (val instanceof BigDecimal) {
+        if (val instanceof BigDecimal){
             return (BigDecimal) val;
         }
-        if (val instanceof BigInteger) {
+        if (val instanceof BigInteger){
             return new BigDecimal((BigInteger) val);
         }
-        if (val instanceof Double || val instanceof Float) {
-            if (!numberIsFinite((Number) val)) {
+        if (val instanceof Double || val instanceof Float){
+            if (!numberIsFinite((Number)val)) {
                 return defaultValue;
             }
             if (exact) {
-                return new BigDecimal(((Number) val).doubleValue());
+                return new BigDecimal(((Number)val).doubleValue());
             }
             // use the string constructor so that we maintain "nice" values for doubles and floats
             // the double constructor will translate doubles to "exact" values instead of the likely
@@ -1220,7 +1220,7 @@ public class JSONObject {
             return new BigDecimal(val.toString());
         }
         if (val instanceof Long || val instanceof Integer
-                || val instanceof Short || val instanceof Byte) {
+                || val instanceof Short || val instanceof Byte){
             return new BigDecimal(((Number) val).longValue());
         }
         // don't check if it's a string in case of unchecked Number subclasses
@@ -1248,29 +1248,29 @@ public class JSONObject {
     }
 
     /**
-     * @param val          value to convert
+     * @param val value to convert
      * @param defaultValue default value to return is the conversion doesn't work or is null.
      * @return BigInteger conversion of the original value, or the defaultValue if unable
-     * to convert.
+     *          to convert.
      */
     static BigInteger objectToBigInteger(Object val, BigInteger defaultValue) {
         if (NULL.equals(val)) {
             return defaultValue;
         }
-        if (val instanceof BigInteger) {
+        if (val instanceof BigInteger){
             return (BigInteger) val;
         }
-        if (val instanceof BigDecimal) {
+        if (val instanceof BigDecimal){
             return ((BigDecimal) val).toBigInteger();
         }
-        if (val instanceof Double || val instanceof Float) {
-            if (!numberIsFinite((Number) val)) {
+        if (val instanceof Double || val instanceof Float){
+            if (!numberIsFinite((Number)val)) {
                 return defaultValue;
             }
             return new BigDecimal(((Number) val).doubleValue()).toBigInteger();
         }
         if (val instanceof Long || val instanceof Integer
-                || val instanceof Short || val instanceof Byte) {
+                || val instanceof Short || val instanceof Byte){
             return BigInteger.valueOf(((Number) val).longValue());
         }
         // don't check if it's a string in case of unchecked Number subclasses
@@ -1281,7 +1281,7 @@ public class JSONObject {
             // this conversion to BigDecimal then to BigInteger is to maintain
             // that type cast support that may truncate the decimal.
             final String valStr = val.toString();
-            if (isDecimalNotation(valStr)) {
+            if(isDecimalNotation(valStr)) {
                 return new BigDecimal(valStr).toBigInteger();
             }
             return new BigInteger(valStr);
@@ -1496,7 +1496,7 @@ public class JSONObject {
         if (NULL.equals(val)) {
             return defaultValue;
         }
-        if (val instanceof Number) {
+        if (val instanceof Number){
             return (Number) val;
         }
 
@@ -1575,7 +1575,7 @@ public class JSONObject {
                             if (objectsRecord.contains(result)) {
                                 throw recursivelyDefinedObjectException(key);
                             }
-
+                            
                             objectsRecord.add(result);
 
                             this.map.put(key, wrap(result, objectsRecord));
@@ -2003,7 +2003,7 @@ public class JSONObject {
      * @throws IllegalArgumentException if {@code jsonPointer} has invalid syntax
      */
     public Object optQuery(String jsonPointer) {
-        return optQuery(new JSONPointer(jsonPointer));
+    	return optQuery(new JSONPointer(jsonPointer));
     }
 
     /**
@@ -2063,42 +2063,42 @@ public class JSONObject {
             b = c;
             c = string.charAt(i);
             switch (c) {
-                case '\\':
-                case '"':
+            case '\\':
+            case '"':
+                w.write('\\');
+                w.write(c);
+                break;
+            case '/':
+                if (b == '<') {
                     w.write('\\');
+                }
+                w.write(c);
+                break;
+            case '\b':
+                w.write("\\b");
+                break;
+            case '\t':
+                w.write("\\t");
+                break;
+            case '\n':
+                w.write("\\n");
+                break;
+            case '\f':
+                w.write("\\f");
+                break;
+            case '\r':
+                w.write("\\r");
+                break;
+            default:
+                if (c < ' ' || (c >= '\u0080' && c < '\u00a0')
+                        || (c >= '\u2000' && c < '\u2100')) {
+                    w.write("\\u");
+                    hhhh = Integer.toHexString(c);
+                    w.write("0000", 0, 4 - hhhh.length());
+                    w.write(hhhh);
+                } else {
                     w.write(c);
-                    break;
-                case '/':
-                    if (b == '<') {
-                        w.write('\\');
-                    }
-                    w.write(c);
-                    break;
-                case '\b':
-                    w.write("\\b");
-                    break;
-                case '\t':
-                    w.write("\\t");
-                    break;
-                case '\n':
-                    w.write("\\n");
-                    break;
-                case '\f':
-                    w.write("\\f");
-                    break;
-                case '\r':
-                    w.write("\\r");
-                    break;
-                default:
-                    if (c < ' ' || (c >= '\u0080' && c < '\u00a0')
-                            || (c >= '\u2000' && c < '\u2100')) {
-                        w.write("\\u");
-                        hhhh = Integer.toHexString(c);
-                        w.write("0000", 0, 4 - hhhh.length());
-                        w.write(hhhh);
-                    } else {
-                        w.write(c);
-                    }
+                }
             }
         }
         w.write('"');
@@ -2130,30 +2130,30 @@ public class JSONObject {
             if (!(other instanceof JSONObject)) {
                 return false;
             }
-            if (!this.keySet().equals(((JSONObject) other).keySet())) {
+            if (!this.keySet().equals(((JSONObject)other).keySet())) {
                 return false;
             }
-            for (final Entry<String, ?> entry : this.entrySet()) {
+            for (final Entry<String,?> entry : this.entrySet()) {
                 String name = entry.getKey();
                 Object valueThis = entry.getValue();
-                Object valueOther = ((JSONObject) other).get(name);
-                if (valueThis == valueOther) {
-                    continue;
+                Object valueOther = ((JSONObject)other).get(name);
+                if(valueThis == valueOther) {
+                	continue;
                 }
-                if (valueThis == null) {
-                    return false;
+                if(valueThis == null) {
+                	return false;
                 }
                 if (valueThis instanceof JSONObject) {
-                    if (!((JSONObject) valueThis).similar(valueOther)) {
+                    if (!((JSONObject)valueThis).similar(valueOther)) {
                         return false;
                     }
                 } else if (valueThis instanceof JSONArray) {
-                    if (!((JSONArray) valueThis).similar(valueOther)) {
+                    if (!((JSONArray)valueThis).similar(valueOther)) {
                         return false;
                     }
                 } else if (valueThis instanceof Number && valueOther instanceof Number) {
-                    if (!isNumberSimilar((Number) valueThis, (Number) valueOther)) {
-                        return false;
+                    if (!isNumberSimilar((Number)valueThis, (Number)valueOther)) {
+                    	return false;
                     }
                 } else if (!valueThis.equals(valueOther)) {
                     return false;
@@ -2188,10 +2188,10 @@ public class JSONObject {
 
         // if the classes are the same and implement Comparable
         // then use the built in compare first.
-        if (l.getClass().equals(r.getClass()) && l instanceof Comparable) {
-            @SuppressWarnings({"rawtypes", "unchecked"})
-            int compareTo = ((Comparable) l).compareTo(r);
-            return compareTo == 0;
+        if(l.getClass().equals(r.getClass()) && l instanceof Comparable) {
+            @SuppressWarnings({ "rawtypes", "unchecked" })
+            int compareTo = ((Comparable)l).compareTo(r);
+            return compareTo==0;
         }
 
         // BigDecimal should be able to handle all of our number types that we support through
@@ -2233,7 +2233,7 @@ public class JSONObject {
      * @param val value to convert
      * @return Number representation of the value.
      * @throws NumberFormatException thrown if the value is not a valid number. A public
-     *                               caller should catch this and wrap it in a {@link JSONException} if applicable.
+     *      caller should catch this and wrap it in a {@link JSONException} if applicable.
      */
     protected static Number stringToNumber(final String val) throws NumberFormatException {
         char initial = val.charAt(0);
@@ -2245,7 +2245,7 @@ public class JSONObject {
                 // keep that by forcing a decimal.
                 try {
                     BigDecimal bd = new BigDecimal(val);
-                    if (initial == '-' && BigDecimal.ZERO.compareTo(bd) == 0) {
+                    if(initial == '-' && BigDecimal.ZERO.compareTo(bd)==0) {
                         return Double.valueOf(-0.0);
                     }
                     return bd;
@@ -2253,26 +2253,26 @@ public class JSONObject {
                     // this is to support "Hex Floats" like this: 0x1.0P-1074
                     try {
                         Double d = Double.valueOf(val);
-                        if (d.isNaN() || d.isInfinite()) {
-                            throw new NumberFormatException("val [" + val + "] is not a valid number.");
+                        if(d.isNaN() || d.isInfinite()) {
+                            throw new NumberFormatException("val ["+val+"] is not a valid number.");
                         }
                         return d;
                     } catch (NumberFormatException ignore) {
-                        throw new NumberFormatException("val [" + val + "] is not a valid number.");
+                        throw new NumberFormatException("val ["+val+"] is not a valid number.");
                     }
                 }
             }
             // block items like 00 01 etc. Java number parsers treat these as Octal.
-            if (initial == '0' && val.length() > 1) {
+            if(initial == '0' && val.length() > 1) {
                 char at1 = val.charAt(1);
-                if (at1 >= '0' && at1 <= '9') {
-                    throw new NumberFormatException("val [" + val + "] is not a valid number.");
+                if(at1 >= '0' && at1 <= '9') {
+                    throw new NumberFormatException("val ["+val+"] is not a valid number.");
                 }
             } else if (initial == '-' && val.length() > 2) {
                 char at1 = val.charAt(1);
                 char at2 = val.charAt(2);
-                if (at1 == '0' && at2 >= '0' && at2 <= '9') {
-                    throw new NumberFormatException("val [" + val + "] is not a valid number.");
+                if(at1 == '0' && at2 >= '0' && at2 <= '9') {
+                    throw new NumberFormatException("val ["+val+"] is not a valid number.");
                 }
             }
             // integer representation.
@@ -2284,15 +2284,15 @@ public class JSONObject {
             // only what they need. i.e. Less runtime overhead if the value is
             // long lived.
             BigInteger bi = new BigInteger(val);
-            if (bi.bitLength() <= 31) {
+            if(bi.bitLength() <= 31){
                 return Integer.valueOf(bi.intValue());
             }
-            if (bi.bitLength() <= 63) {
+            if(bi.bitLength() <= 63){
                 return Long.valueOf(bi.longValue());
             }
             return bi;
         }
-        throw new NumberFormatException("val [" + val + "] is not a valid number.");
+        throw new NumberFormatException("val ["+val+"] is not a valid number.");
     }
 
     /**
@@ -2383,9 +2383,9 @@ public class JSONObject {
      * </b>
      *
      * @return a printable, displayable, portable, transmittable representation
-     * of the object, beginning with <code>{</code>&nbsp;<small>(left
-     * brace)</small> and ending with <code>}</code>&nbsp;<small>(right
-     * brace)</small>.
+     *         of the object, beginning with <code>{</code>&nbsp;<small>(left
+     *         brace)</small> and ending with <code>}</code>&nbsp;<small>(right
+     *         brace)</small>.
      */
     @Override
     public String toString() {
@@ -2455,10 +2455,10 @@ public class JSONObject {
      *             If the value is or contains an invalid number.
      */
     public static String valueToString(Object value) throws JSONException {
-        // moves the implementation to JSONWriter as:
-        // 1. It makes more sense to be part of the writer class
-        // 2. For Android support this method is not available. By implementing it in the Writer
-        //    Android users can use the writer with the built in Android JSONObject implementation.
+    	// moves the implementation to JSONWriter as:
+    	// 1. It makes more sense to be part of the writer class
+    	// 2. For Android support this method is not available. By implementing it in the Writer
+    	//    Android users can use the writer with the built in Android JSONObject implementation.
         return JSONWriter.valueToString(value);
     }
 
@@ -2541,7 +2541,7 @@ public class JSONObject {
 
     @SuppressWarnings("resource")
     static final Writer writeValue(Writer writer, Object value,
-                                   int indentFactor, int indent) throws JSONException, IOException {
+            int indentFactor, int indent) throws JSONException, IOException {
         if (value == null || value.equals(null)) {
             writer.write("null");
         } else if (value instanceof JSONString) {
@@ -2555,7 +2555,7 @@ public class JSONObject {
         } else if (value instanceof Number) {
             // not all Numbers may match actual JSON Numbers. i.e. fractions or Imaginary
             final String numberAsString = numberToString((Number) value);
-            if (NUMBER_PATTERN.matcher(numberAsString).matches()) {
+            if(NUMBER_PATTERN.matcher(numberAsString).matches()) {
                 writer.write(numberAsString);
             } else {
                 // The Number value is not a valid JSON number.
@@ -2565,7 +2565,7 @@ public class JSONObject {
         } else if (value instanceof Boolean) {
             writer.write(value.toString());
         } else if (value instanceof Enum<?>) {
-            writer.write(quote(((Enum<?>) value).name()));
+            writer.write(quote(((Enum<?>)value).name()));
         } else if (value instanceof JSONObject) {
             ((JSONObject) value).write(writer, indentFactor, indent);
         } else if (value instanceof JSONArray) {
@@ -2615,7 +2615,7 @@ public class JSONObject {
      *            The indentation of the top level.
      * @return The writer.
      * @throws JSONException if a called function has an error or a write error
-     *                       occurs
+     * occurs
      */
     @SuppressWarnings("resource")
     public Writer write(Writer writer, int indentFactor, int indent)
@@ -2626,21 +2626,21 @@ public class JSONObject {
             writer.write('{');
 
             if (length == 1) {
-                final Entry<String, ?> entry = this.entrySet().iterator().next();
+            	final Entry<String,?> entry = this.entrySet().iterator().next();
                 final String key = entry.getKey();
                 writer.write(quote(key));
                 writer.write(':');
                 if (indentFactor > 0) {
                     writer.write(' ');
                 }
-                try {
+                try{
                     writeValue(writer, entry.getValue(), indentFactor, indent);
                 } catch (Exception e) {
                     throw new JSONException("Unable to write JSONObject value for key: " + key, e);
                 }
             } else if (length != 0) {
                 final int newIndent = indent + indentFactor;
-                for (final Entry<String, ?> entry : this.entrySet()) {
+                for (final Entry<String,?> entry : this.entrySet()) {
                     if (needsComma) {
                         writer.write(',');
                     }
@@ -2702,9 +2702,9 @@ public class JSONObject {
 
     /**
      * Create a new JSONException in a common format for incorrect conversions.
-     * @param key       name of the key
+     * @param key name of the key
      * @param valueType the type of value being coerced to
-     * @param cause     optional cause of the coercion failure
+     * @param cause optional cause of the coercion failure
      * @return JSONException that can be thrown.
      */
     private static JSONException wrongValueFormatException(
@@ -2712,14 +2712,14 @@ public class JSONObject {
             String valueType,
             Object value,
             Throwable cause) {
-        if (value == null) {
+        if(value == null) {
 
             return new JSONException(
                     "JSONObject[" + quote(key) + "] is not a " + valueType + " (null)."
                     , cause);
         }
         // don't try to toString collections or known object types that could be large.
-        if (value instanceof Map || value instanceof Iterable || value instanceof JSONObject) {
+        if(value instanceof Map || value instanceof Iterable || value instanceof JSONObject) {
             return new JSONException(
                     "JSONObject[" + quote(key) + "] is not a " + valueType + " (" + value.getClass() + ")."
                     , cause);
@@ -2736,7 +2736,7 @@ public class JSONObject {
      */
     private static JSONException recursivelyDefinedObjectException(String key) {
         return new JSONException(
-                "JavaBean object contains recursively defined member variable of key " + quote(key)
+            "JavaBean object contains recursively defined member variable of key " + quote(key)
         );
     }
 }
