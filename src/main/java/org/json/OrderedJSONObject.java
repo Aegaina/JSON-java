@@ -5,6 +5,9 @@ import java.util.Map;
 
 /**
  * An extended JSONObject which keeps the insertion order
+ *
+ * @author Cathy Zhou
+ * @version 2022-06-17
  */
 public class OrderedJSONObject extends JSONObject {
     //region Constructors

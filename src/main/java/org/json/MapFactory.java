@@ -6,6 +6,7 @@ import java.util.Map;
  * Define a set of methods to create an instance of Map
  *
  * @author Cathy Zhou
+ * @version 2022-06-17
  */
 public interface MapFactory {
     /**

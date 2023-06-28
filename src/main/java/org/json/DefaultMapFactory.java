@@ -7,6 +7,7 @@ import java.util.Map;
  * The default implementation of MapFactory
  *
  * @author Cathy Zhou
+ * @version 2022-06-17
  */
 class DefaultMapFactory implements MapFactory {
     private DefaultMapFactory() {
