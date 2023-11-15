@@ -210,22 +210,14 @@ public class JSONObject {
             throw x.syntaxError("A JSONObject text must begin with '{'");
         }
         for (;;) {
-            char prev = x.getPrevious();
             c = x.nextClean();
             switch (c) {
             case 0:
                 throw x.syntaxError("A JSONObject text must end with '}'");
             case '}':
                 return;
-            case '{':
-            case '[':
-                if(prev=='{') {
-                    throw x.syntaxError("A JSON Object can not directly nest another JSON Object or JSON Array.");
-                }
-                // fall through
             default:
-                x.back();
-                key = x.nextValue().toString();
+                key = x.nextSimpleValue(c).toString();
             }
 
             // The key is followed by ':'.
@@ -293,6 +285,7 @@ public class JSONObject {
         	    }
                 final Object value = e.getValue();
                 if (value != null) {
+                    testValidity(value);
                     this.map.put(String.valueOf(e.getKey()), wrap(value));
                 }
             }
@@ -356,6 +349,8 @@ public class JSONObject {
      * @param bean
      *            An object that has getter methods that should be used to make
      *            a JSONObject.
+     * @throws JSONException
+     *            If a getter returned a non-finite number.
      */
     public JSONObject(Object bean) {
         this();
@@ -1523,8 +1518,22 @@ public class JSONObject {
      * @return A JSONArray which is the value.
      */
     public JSONArray optJSONArray(String key) {
-        Object o = this.opt(key);
-        return o instanceof JSONArray ? (JSONArray) o : null;
+        return this.optJSONArray(key, null);
+    }
+
+    /**
+     * Get an optional JSONArray associated with a key, or the default if there
+     * is no such key, or if its value is not a JSONArray.
+     *
+     * @param key
+     *            A key string.
+     * @param defaultValue
+     *            The default.
+     * @return A JSONArray which is the value.
+     */
+    public JSONArray optJSONArray(String key, JSONArray defaultValue) {
+        Object object = this.opt(key);
+        return object instanceof JSONArray ? (JSONArray) object : defaultValue;
     }
 
     /**
@@ -1696,6 +1705,8 @@ public class JSONObject {
      *
      * @param bean
      *            the bean
+     * @throws JSONException
+     *            If a getter returned a non-finite number.
      */
     private void populateMap(Object bean) {
         populateMap(bean, Collections.newSetFromMap(new IdentityHashMap<Object, Boolean>()));
@@ -1723,21 +1734,22 @@ public class JSONObject {
                         final Object result = method.invoke(bean);
                         if (result != null) {
                             // check cyclic dependency and throw error if needed
-                            // the wrap and populateMap combination method is 
+                            // the wrap and populateMap combination method is
                             // itself DFS recursive
                             if (objectsRecord.contains(result)) {
                                 throw recursivelyDefinedObjectException(key);
                             }
-                            
+
                             objectsRecord.add(result);
 
+                            testValidity(result);
                             this.map.put(key, wrap(result, objectsRecord));
 
                             objectsRecord.remove(result);
 
                             // we don't use the result anywhere outside of wrap
                             // if it's a resource we should be sure to close it
-                            // after calling toString 
+                            // after calling toString
                             if (result instanceof Closeable) {
                                 try {
                                     ((Closeable) result).close();
@@ -2188,13 +2200,11 @@ public class JSONObject {
     @SuppressWarnings("resource")
     public static String quote(String string) {
         StringWriter sw = new StringWriter();
-        synchronized (sw.getBuffer()) {
-            try {
-                return quote(string, sw).toString();
-            } catch (IOException ignored) {
-                // will never happen - we are writing to a string writer
-                return "";
-            }
+        try {
+            return quote(string, sw).toString();
+        } catch (IOException ignored) {
+            // will never happen - we are writing to a string writer
+            return "";
         }
     }
 
@@ -2386,14 +2396,21 @@ public class JSONObject {
      * returns for this function are BigDecimal, Double, BigInteger, Long, and Integer.
      * When a Double is returned, it should always be a valid Double and not NaN or +-infinity.
      *
-     * @param val value to convert
+     * @param input value to convert
      * @return Number representation of the value.
      * @throws NumberFormatException thrown if the value is not a valid number. A public
      *      caller should catch this and wrap it in a {@link JSONException} if applicable.
      */
-    protected static Number stringToNumber(final String val) throws NumberFormatException {
+    protected static Number stringToNumber(final String input) throws NumberFormatException {
+        String val = input;
+        if (val.startsWith(".")){
+            val = "0"+val;
+        }
+        if (val.startsWith("-.")){
+            val = "-0."+val.substring(2);
+        }
         char initial = val.charAt(0);
-        if ((initial >= '0' && initial <= '9') || initial == '-') {
+        if ((initial >= '0' && initial <= '9') || initial == '-' ) {
             // decimal representation
             if (isDecimalNotation(val)) {
                 // Use a BigDecimal all the time so we keep the original
@@ -2410,25 +2427,26 @@ public class JSONObject {
                     try {
                         Double d = Double.valueOf(val);
                         if(d.isNaN() || d.isInfinite()) {
-                            throw new NumberFormatException("val ["+val+"] is not a valid number.");
+                            throw new NumberFormatException("val ["+input+"] is not a valid number.");
                         }
                         return d;
                     } catch (NumberFormatException ignore) {
-                        throw new NumberFormatException("val ["+val+"] is not a valid number.");
+                        throw new NumberFormatException("val ["+input+"] is not a valid number.");
                     }
                 }
             }
-            // block items like 00 01 etc. Java number parsers treat these as Octal.
+            val = removeLeadingZerosOfNumber(input);
+            initial = val.charAt(0);
             if(initial == '0' && val.length() > 1) {
                 char at1 = val.charAt(1);
                 if(at1 >= '0' && at1 <= '9') {
-                    throw new NumberFormatException("val ["+val+"] is not a valid number.");
+                    throw new NumberFormatException("val ["+input+"] is not a valid number.");
                 }
             } else if (initial == '-' && val.length() > 2) {
                 char at1 = val.charAt(1);
                 char at2 = val.charAt(2);
                 if(at1 == '0' && at2 >= '0' && at2 <= '9') {
-                    throw new NumberFormatException("val ["+val+"] is not a valid number.");
+                    throw new NumberFormatException("val ["+input+"] is not a valid number.");
                 }
             }
             // integer representation.
@@ -2448,7 +2466,7 @@ public class JSONObject {
             }
             return bi;
         }
-        throw new NumberFormatException("val ["+val+"] is not a valid number.");
+        throw new NumberFormatException("val ["+input+"] is not a valid number.");
     }
 
     /**
@@ -2484,14 +2502,35 @@ public class JSONObject {
          * produced, then the value will just be a string.
          */
 
-        char initial = string.charAt(0);
-        if ((initial >= '0' && initial <= '9') || initial == '-') {
+        if (potentialNumber(string)) {
             try {
                 return stringToNumber(string);
             } catch (Exception ignore) {
             }
         }
         return string;
+    }
+
+
+    private static boolean potentialNumber(String value){
+        if (value == null || value.isEmpty()){
+            return false;
+        }
+        return potentialPositiveNumberStartingAtIndex(value, (value.charAt(0)=='-'?1:0));
+    }
+
+    private static boolean potentialPositiveNumberStartingAtIndex(String value,int index){
+        if (index >= value.length()){
+            return false;
+        }
+        return digitAtIndex(value, (value.charAt(index)=='.'?index+1:index));
+    }
+
+    private static boolean digitAtIndex(String value, int index){
+        if (index >= value.length()){
+            return false;
+        }
+        return value.charAt(index) >= '0' && value.charAt(index) <= '9';
     }
 
     /**
@@ -2581,9 +2620,7 @@ public class JSONObject {
     @SuppressWarnings("resource")
     public String toString(int indentFactor) throws JSONException {
         StringWriter w = new StringWriter();
-        synchronized (w.getBuffer()) {
-            return this.write(w, indentFactor, 0).toString();
-        }
+        return this.write(w, indentFactor, 0).toString();
     }
 
     /**
@@ -2894,5 +2931,25 @@ public class JSONObject {
         return new JSONException(
             "JavaBean object contains recursively defined member variable of key " + quote(key)
         );
+    }
+
+    /**
+     * For a prospective number, remove the leading zeros
+     * @param value prospective number
+     * @return number without leading zeros
+     */
+    private static String removeLeadingZerosOfNumber(String value){
+        if (value.equals("-")){return value;}
+        boolean negativeFirstChar = (value.charAt(0) == '-');
+        int counter = negativeFirstChar ? 1:0;
+        while (counter < value.length()){
+            if (value.charAt(counter) != '0'){
+                if (negativeFirstChar) {return "-".concat(value.substring(counter));}
+                return value.substring(counter);
+            }
+            ++counter;
+        }
+        if (negativeFirstChar) {return "-0";}
+        return "0";
     }
 }
