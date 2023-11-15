@@ -204,9 +204,18 @@
     </build>
 
     <distributionManagement>
-        <repository>
+        <!--<repository>
             <id>github</id>
             <url>https://maven.pkg.github.com/Aegaina/JSON-java</url>
+        </repository>-->
+        <repository>
+            <id>gitlab</id>
+            <url>https://gitlab.com/api/v4/projects/52192886/packages/maven</url>
         </repository>
+
+        <snapshotRepository>
+            <id>gitlab</id>
+            <url>https://gitlab.com/api/v4/projects/52192886/packages/maven</url>
+        </snapshotRepository>
     </distributionManagement>
 </project>
